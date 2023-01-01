@@ -1,2 +1,2 @@
 # scooby
-Solar Conventionality-based Organizing Observation data ( SCOOBY )
+Solar Conventionality-based Organizing Observation data ( SCOOBI )
