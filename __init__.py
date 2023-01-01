@@ -1,5 +1,5 @@
 #! /home/avi/Solar_Data/Raw/archival_data_codes/env/py310/bin/python3.10
-# Solar Conventionality-based Organizing Observation data ( SCOOBY )
+# Solar Conventionality-based Organizing Observation data ( SCOOBI )
 
 import exifread, subprocess, argparse
 from glob import glob
@@ -10,7 +10,7 @@ import astropy.units as u
 from collections import defaultdict
 import csv
 
-class SCOOBY():
+class SCOOBI():
     def __init__():
         pass
 
