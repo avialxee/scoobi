@@ -24,8 +24,8 @@ def cli():
     sf=args.sfolder
     lf=args.logfolder
     tf=args.tiffolder
-
-    
     print([sf,lf,tf])
+    compare_datetime(sf,lf,tf)
+    
 if __name__=='__main__':
     cli()
