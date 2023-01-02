@@ -87,10 +87,10 @@ def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
 #     print(f)
 #     tif_to_fits(f)
 
-def compare_datetime(searchfolder='/home/avi/archived_data_solar/processed_data/2012/', logfolder='/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/',
+def compare_datetime(searchfolder='/home/avi/archived_data_solar/processed_data/2012/', csv_file='/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
 tiffolder='/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/'):
     
-    csv_file=f'{logfolder}2012all_compare_datetime.csv'
+    
     
     # month folder to search in raw_data
     month=['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec']

@@ -15,14 +15,14 @@ Solar Conventionality-based Organizing Observation data ( SCOOBI )""", formatter
 cd0 = parser.add_subparsers(help='compare datetimes')
 cd1 = cd0.add_parser( 'c',help='compare datetime')
 sf = cd1.add_argument('sfolder', help='sfolder path')
-lf = cd1.add_argument('logfolder', help='helpfolder path')
+cf = cd1.add_argument('csvfile', help='helpfolder path')
 tf = cd1.add_argument('tiffolder', help='tiffolder path')
 
 
 args=parser.parse_args()
 def cli():
     sf=args.sfolder
-    lf=args.logfolder
+    cf=args.csvfile
     tf=args.tiffolder
     print([sf,lf,tf])
     compare_datetime(sf,lf,tf)
