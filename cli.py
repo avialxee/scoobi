@@ -12,7 +12,13 @@ def read_configfile(filepath):
                 continue
             elif '=' in pr[i]:
                 k,v=pr[i].split('=')
-                params[k]=v
+                if 'month' in k:
+                    params[k]=v.split(',')
+                elif 'days' in k:
+                    dd=v.split(',')
+                    params[k]=range(int(dd[0]),int(dd[1])) 
+                else:
+                    params[k]=v
     return params
 
 def default_params():
@@ -45,8 +51,8 @@ parser.add_argument('-o','--output_file', help='complete path for output csv or 
 parser.add_argument('-c','--config_file', help='complete path for config file with inputs', default='.config')
 
 parser.add_argument('-mm', '--month', type=str, help="""comma separated month names""")
-parser.add_argument('-dd', '--dates', type=str, default='1,32', help="""comma separated month names for range(a,b) 
-Ex --dates='1,32'""")
+parser.add_argument('-dd', '--days', type=str, default='1,32', help="""comma separated month names for range(a,b) 
+Ex --days='1,32'""")
 
 parser.add_argument('-rt','--read-time', action='store_true', dest='rt',help='reads time from a tiff file') 
 parser.add_argument('-ct','--compare-time', action='store_true', dest='ct',help='compares time from a fits file to a tiff file') 
@@ -62,7 +68,7 @@ def cli():
     if args.tiff_folder: params['tiff_folder']=args.tiff_folder
 
     mm=args.month or params['month']
-    dd=args.dates #already has default values
+    dd=args.days #already has default values
     configfile=args.config_file or '.config'
 
     if dd: dd=str(dd).split(',')
