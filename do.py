@@ -87,24 +87,28 @@ def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
 #     print(f)
 #     tif_to_fits(f)
 
-def compare_datetime(searchfolder='/home/avi/archived_data_solar/processed_data/2012/', csv_file='/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
-tiffolder='/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/'):
+def compare_datetime(**kwargs):
+    params={
+        'source_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
+        'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
+        'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
+        'month':['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec'], 
+        'days':range(1,32)
+    }
+    params.update(kwargs)
     
-    
-    
-    # month folder to search in raw_data
-    month=['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec']
-    allmonthfolders=glob(f'{searchfolder}*')
     sfolder=None
-    for m in month:
+    month_dict=['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec']
+    allmonthfolders=glob(f"{params['source_folder']}*")
+
+    for m in params['month']:
         for mm in allmonthfolders: 
                 if m in mm:
                     sfolder=f'{mm}'
         
-        for day in range(1,32):
+        for day in params['days']:
             
             d_str=str(day).zfill(2)
-            print(f'{m} {d_str}')
         
             list_fitsfile=search_file(f'{sfolder}/{d_str}/', '.fits', True)
             tlist_fitsfile=len(list_fitsfile)
@@ -123,44 +127,34 @@ tiffolder='/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/'):
                 
                 # build name for dated folder in raw_data
                 dm=d.split('-')    
-                datedfolder=str(int(dm[2][:2]))+str(month[int(dm[1])-1])
-                list_tiffile=search_file(f'{tiffolder}{m}/{datedfolder}',fl, recursive=True,dontknowfoldername=True)
+                datedfolder=str(int(dm[2][:2]))+str(month_dict[int(dm[1])-1])
+                list_tiffile=search_file(f'{params["tiff_folder"]}{m}/{datedfolder}',fl, recursive=True,dontknowfoldername=True)
                 ltf_datetime_found,ltf_found='NA',f'missing /{datedfolder.lower()}' # init with NA if missing
 
                 if not len(list_tiffile):
-                    list_tiffile=search_file(f'{tiffolder}{m.upper()}/{datedfolder}',fl, recursive=True,dontknowfoldername=True)
+                    list_tiffile=search_file(f'{params["tiff_folder"]}{m.upper()}/{datedfolder}',fl, recursive=True,dontknowfoldername=True)
                 if not len(list_tiffile):
-                    list_tiffile=search_file(f'{tiffolder}{m.upper()}/{datedfolder.lower()}',fl, recursive=True,dontknowfoldername=True)
+                    list_tiffile=search_file(f'{params["tiff_folder"]}{m.upper()}/{datedfolder.lower()}',fl, recursive=True,dontknowfoldername=True)
                 
                 
                 for ltf in list_tiffile:
                     if f'/{datedfolder.lower()}' in ltf.lower():
-                        ltf_datetime=str(Time.strptime(str(read_tif(ltf)['Image DateTime'].values),'%m/%d/%Y %I:%M:%S.%f %p',scale='utc', format='fits'))
+                        # try:
+                        #     ltf_datetime=str(Time.strptime(str(read_tif(ltf)['Image DateTime'].values),'%m/%d/%Y %I:%M:%S.%f %p',scale='utc', format='fits'))
+                        # except:
+                        try:
+                            ltf_datetime=str(read_tif(ltf)['Image DateTime'].values)
+                        except:
+                            ltf_datetime='NA'
                         ltf_datetime_found,ltf_found=ltf_datetime,ltf
                 csv_data.append([Path(fitsfile).name,d,fl,ltf_datetime_found,ltf_found])
                 
             tcsv_data=len(csv_data)
             if tcsv_data:
-                with open(csv_file, 'a') as cfile:
+                with open(params['csv_file'], 'a') as cfile:
                     cw=csv.writer(cfile)
                     cw.writerows(csv_data)
-                    print(f"ww={tcsv_data}/tt={tlist_fitsfile}")
+                    # print(f"ww={tcsv_data}/tt={tlist_fitsfile}")
                     
 def _create_folder():
     pass
-
-# def cli():
-#     parser = argparse.ArgumentParser('scoobi',description="""Solar Conventionality-based Organizing Observation data ( SCOOBI )
-# """, formatter_class=argparse.RawDescriptionHelpFormatter)
-#     parser.add_argument('-cdt', '--comparedatetime', type=str, help="""(Required)
-#         calls the comparedate time .""")
-
-# if __name__ == "__main__":
-# print(f'start: {datetime.datetime.now().isoformat()}')
-# compare_datetime()
-# print(f'end: {datetime.datetime.now().isoformat()}')
-# path='/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/APR/30Apr'
-# # res=search_file(path,'s00011.tif', True)
-# file_format='s00011.tif'
-# res1=
-# print(res1)
