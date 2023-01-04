@@ -105,10 +105,6 @@ def build_foldername(cfitsname, archived_data_solar_path='/home/avi/archived_dat
         if not currentfolder.exists():
             currentfolder.mkdir(parents=True,exist_ok=True)
         return currentfolder
-            
-
-
-        
     else:
         raise Exception('Please check folder path "{archived_data_solar_path}"')
 
