@@ -56,8 +56,8 @@ Ex --days='1,32'""")
 
 parser.add_argument('-rt','--read-time', action='store_true', dest='rt',help='reads time from a tiff file') 
 parser.add_argument('-ct','--compare-time', action='store_true', dest='ct',help='compares time from a fits file to a tiff file') 
-parser.add_argument('-rc','--read-config',action='store_true',dest='rc')
-parser.add_argument('-cc','--create-config',action='store_true',dest='cc')
+parser.add_argument('-rc','--read-config',action='store_true',dest='rc', help=" read config, bool")
+parser.add_argument('-cc','--create-config',action='store_true',dest='cc', help=" create config, bool, if called with rc would modify from and to the CONFIG_FILE path")
 
 args=parser.parse_args()
 def cli():

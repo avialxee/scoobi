@@ -34,7 +34,7 @@ def search_file(path='', file_format='.tif', recursive=False, dontknowfoldername
     return files
 
 # Process
-def header_dict(tiffile):
+def header_dictfromtiff(tiffile):
     """
     create dict from tiffile metadata read by exifread
     *adds some headers automatically from ImageDescription
@@ -54,11 +54,10 @@ def header_dict(tiffile):
             exptime=exposure-expdef
     header['EXPTIME']=round(float(exptime.sec),1)
     return header
-
 def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
     tifpath = Path(tiffile)
     if header is None:
-        header=header_dict(tiffile)
+        header=header_dictfromtiff(tiffile)
     if 'telescope' in kwargs: 
         telescope=kwargs['telescope']
     else:
