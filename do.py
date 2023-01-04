@@ -55,6 +55,17 @@ def header_dictfromtiff(tiffile):
     header['EXPTIME']=round(float(exptime.sec),1)
     return header
 
+def header_dictforfits(fitsfile, **kwargs):
+    header_params={
+        
+
+    }
+    header_params.update(kwargs)
+    with fits.open(fitsfile, 'update') as f:
+        for hdu in f:
+            hdu.header.update(header_params)
+            hdu.header['FILENAME'] = tifpath.name
+
 def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
     tifpath = Path(tiffile)
     if header is None:
@@ -80,12 +91,38 @@ def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
             hdu.header['HISTORY']=f'{tiffile}'
             hdu.header['HISTORY']=f'scooby.py'
 
-# listfile=search_file('/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/APR/','fm01360.tif', recursive=True)
-# print(f'total files: {len(listfile)}', listfile)
-# print(read_tif(listfile[0]))
-# for f in listfile:
-#     print(f)
-#     tif_to_fits(f)
+def build_foldername(cfitsname, archived_data_solar_path='/home/avi/archived_data_solar/', final=False):
+    """
+    Ex S-2022-11-01T02:02:20.001-HA.fits
+    """
+    if Path(archived_data_solar_path).exists():
+        dcf=cfitsname.split('-')
+        if final:
+            destfolder='final_data/'
+        else:
+            destfolder='processed_data/'
+        currentfolder=Path(f'{archived_data_solar_path}{destfolder}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf[3]}/')
+        if not currentfolder.exists():
+            currentfolder.mkdir(parents=True,exist_ok=True)
+        return currentfolder
+            
+
+
+        
+    else:
+        raise Exception('Please check folder path "{archived_data_solar_path}"')
+
+def tif2fits_bulk(tiffolderlist):
+    if isinstance(tiffolderlist,list):
+        for tifffolder in tiffolderlist:
+            listtiff=search_file(tifffolder,'.tif', recursive=True)
+            print(f'total files: {len(listtiff)}')
+    else:
+        raise Exception(f'Is "{tiffolderlist}" a list?')
+        # print(read_tif(listfile[0]))
+        # for f in listfile:
+        #     print(f)
+        #     tif_to_fits(f)
 
 def compare_datetime(**kwargs):
     params={
@@ -158,3 +195,4 @@ def compare_datetime(**kwargs):
                     
 def _create_folder():
     pass
+print(tif2fits_bulk(['/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/APR/']))
