@@ -54,6 +54,7 @@ def header_dictfromtiff(tiffile):
             exptime=exposure-expdef
     header['EXPTIME']=round(float(exptime.sec),1)
     return header
+
 def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
     tifpath = Path(tiffile)
     if header is None:
