@@ -66,6 +66,29 @@ def header_dictforfits(fitsfile, **kwargs):
             hdu.header.update(header_params)
             hdu.header['FILENAME'] = tifpath.name
 
+def build_foldername(cfitsname, final=False, **kwargs):
+    """
+    Ex S-2022-11-01T02:02:20.001-HA.fits
+    """
+    params={'destfolder': None, 
+     'rootfolder':'/home/avi/archived_data_solar/'}
+    params.update(kwargs)
+    if Path(params["rootfolder"]).exists():
+        if params['destfolder'] is None:
+            if final:
+                params['destfolder']='final_data/'
+            else:
+                params['destfolder']='processed_data/'
+        dcf=cfitsname.split('-')
+        dcf_date=dcf[3].split('T')[0]
+        currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
+        if not Path(currentfolder).exists():
+            Path(currentfolder).mkdir(parents=True,exist_ok=True)
+        return f'{currentfolder}{cfitsname}'
+        
+    else:
+        raise Exception('Please check rootfolder path')
+
 def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
     tifpath = Path(tiffile)
     if header is None:
@@ -76,8 +99,10 @@ def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
         telescope='HA'
     if not fitsfile:
         # name convention : *S + DATETIME + TELESCOPE*
-        fitsfile=f'S-{header["DATE-OBS"].replace("-","_")}-{telescope}.fits'
-
+        fitsfile=f'S-{header["DATE-OBS"]}-{telescope}.fits'
+        fitsfile=build_foldername(fitsfile, **kwargs)
+        
+    
     if magick:
         print(tiffile)
         subprocess.run(['convert', str(tiffile), fitsfile])
@@ -89,40 +114,22 @@ def tif_to_fits(tiffile, magick=True, fitsfile=None, header=None, **kwargs):
             hdu.header.update(header)
             hdu.header['FILENAME'] = tifpath.name
             hdu.header['HISTORY']=f'{tiffile}'
-            hdu.header['HISTORY']=f'scooby.py'
+            hdu.header['HISTORY']=f'scoobi'
 
-def build_foldername(cfitsname, archived_data_solar_path='/home/avi/archived_data_solar/', final=False):
-    """
-    Ex S-2022-11-01T02:02:20.001-HA.fits
-    """
-    if Path(archived_data_solar_path).exists():
-        dcf=cfitsname.split('-')
-        if final:
-            destfolder='final_data/'
-        else:
-            destfolder='processed_data/'
-        currentfolder=Path(f'{archived_data_solar_path}{destfolder}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf[3]}/')
-        if not currentfolder.exists():
-            currentfolder.mkdir(parents=True,exist_ok=True)
-        return currentfolder
-    else:
-        raise Exception('Please check folder path "{archived_data_solar_path}"')
 
-def tif2fits_bulk(tiffolderlist):
+def tif2fits_bulk(tiffolderlist, **kwargs):
     if isinstance(tiffolderlist,list):
         for tifffolder in tiffolderlist:
             listtiff=search_file(tifffolder,'.tif', recursive=True)
-            print(f'total files: {len(listtiff)}')
+            for f in listtiff:
+                tif_to_fits(f, **kwargs)
     else:
         raise Exception(f'Is "{tiffolderlist}" a list?')
-        # print(read_tif(listfile[0]))
-        # for f in listfile:
-        #     print(f)
-        #     tif_to_fits(f)
+        
 
 def compare_datetime(**kwargs):
     params={
-        'source_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
+        'fits_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
         'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
         'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
         'month':['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec'], 
@@ -132,7 +139,7 @@ def compare_datetime(**kwargs):
     
     sfolder=None
     month_dict=['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec']
-    allmonthfolders=glob(f"{params['source_folder']}*")
+    allmonthfolders=glob(f"{params['fits_folder']}*")
 
     for m in params['month']:
         for mm in allmonthfolders: 
@@ -188,7 +195,50 @@ def compare_datetime(**kwargs):
                     cw=csv.writer(cfile)
                     cw.writerows(csv_data)
                     # print(f"ww={tcsv_data}/tt={tlist_fitsfile}")
-                    
-def _create_folder():
-    pass
-print(tif2fits_bulk(['/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/APR/']))
+
+def compare_datetime_nofolder(**kwargs):
+    params={
+        'fits_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
+        'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
+        'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
+        
+    }
+    params.update(kwargs)
+    
+    list_fitsfile=search_file(f'{params["fits_folder"]}/', '.fits', True)
+    tlist_fitsfile=len(list_fitsfile)
+    
+    csv_data=[]    
+    for fitsfile in list_fitsfile:
+        
+        hdul=fits.open(fitsfile)
+        try:
+            d=hdul[0].header['DATE-OBS']
+            fl=hdul[0].header['FILENAME']
+        except KeyError:
+            d=hdul[1].header['DATE-OBS']
+            fl=hdul[1].header['FILENAME']
+        
+        
+        # build name for dated folder in raw_data
+        dm=d.split('-')    
+        
+        list_tiffile=search_file(f'{params["tiff_folder"]}',fl, recursive=True,dontknowfoldername=True)
+        ltf_datetime_found,ltf_found='NA',f'missing /{fl}' # init with NA if missing
+
+        if not len(list_tiffile):
+            list_tiffile=search_file(f'{params["tiff_folder"]}',fl, recursive=True,dontknowfoldername=False)
+        
+        for ltf in list_tiffile:
+            try:
+                ltf_datetime=str(read_tif(ltf)['Image DateTime'].values)
+            except:
+                ltf_datetime='NA'
+            ltf_datetime_found,ltf_found=ltf_datetime,ltf
+        csv_data.append([Path(fitsfile).name,d,fl,ltf_datetime_found,ltf_found])
+        
+    tcsv_data=len(csv_data)
+    if tcsv_data:
+        with open(params['csv_file'], 'a') as cfile:
+            cw=csv.writer(cfile)
+            cw.writerows(csv_data)
