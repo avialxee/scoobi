@@ -49,6 +49,17 @@ parser.add_argument('-f','--fits_folder', help='source') #positionals
 parser.add_argument('-t','--tiff_folder', help='tiff folder path')
 parser.add_argument('-o','--output_file', help='complete path for output csv or log file.')
 parser.add_argument('-c','--config_file', help='complete path for config file with inputs', default='.config')
+# parser.add_argument('-hdr','--header', help='Input header to inject to the FITS file.')
+
+headers=parser.add_argument_group('header', """Use the following arguments to create header from an input file to inject to the raw file. 
+1) Input file should have headers in the following manner:
+    BLOCSIZE=163840 | using # will comment the entire field.
+2) use -hdr with -hf to update input file supplied field values.
+    ex: gmrt_raw_toguppi -hf=headerinput.txt -hdr='TELESCOP=uGMRT,OBSERVER=John Doe'""")
+headers.add_argument('-hdr','--header', type=str, help="Comma separated input headers to inject to the raw file.", required=False)
+headers.add_argument('-hf', '--header-file', type=str, help="Input header from path to inject to the raw file.", required=False)
+headers.add_argument('-hfo', '--header-file-output', type=str, help="Header output with the correct padding.", required=False)
+headers.add_argument('-hio', '--header-direct-io', type=bool, help='If set to False bypasses padding for DIRECTIO=1 without affecting the header values. | Default: True')
 
 parser.add_argument('-mm', '--month', type=str, help="""comma separated month names""")
 parser.add_argument('-dd', '--days', type=str, default='1,32', help="""comma separated month names for range(a,b) 
@@ -58,16 +69,32 @@ parser.add_argument('--no-datedfolder', action='store_true', dest='no_datedfolde
 parser.add_argument('-rt','--read-time', action='store_true', dest='rt',help='reads time from a tiff file') 
 parser.add_argument('-ct','--compare-time', action='store_true', dest='ct',help='compares time from a fits file to a tiff file') 
 parser.add_argument('-rc','--read-config',action='store_true',dest='rc', help=" read config, bool")
-parser.add_argument('-cc','--create-config',action='store_true',dest='cc', help=" create config, bool, if called with rc would modify from and to the CONFIG_FILE path")
+parser.add_argument('-cc','--create-config',action='store_true',dest='cc', help=" create config, if called with rc would modify from and to the CONFIG_FILE path")
 parser.add_argument('-do','--do-conversion',action='store_true',dest='do', help=" create fits from tiff file and take care of the folder structure. Requires tiff_folder path")
 
 args=parser.parse_args()
 def cli():
     params=default_params()
-    
+    header = defaultdict(list)
     if args.fits_folder: params['fits_folder']=args.fits_folder
     if args.output_file: params['csv_file']=args.output_file
     if args.tiff_folder: params['tiff_folder']=args.tiff_folder
+    if args.header_file_output: print(args.header_file_output)
+    if args.header: 
+        hdrin=str(args.header).replace(' ','')
+        hdrdict=hdrin.split(',')
+        for i in range(len(hdrdict)):
+            if '=' in hdrdict[i]:
+                hdrk,hdrv=hdrdict[i].split('=')
+                try:
+                    hdrv=int(hdrv)
+                except:
+                    try:
+                        hdrv=float(hdrv)
+                    except:
+                        hdrv=str(hdrv).strip()
+                header[hdrk]=hdrv  
+        print(header)
 
     mm=args.month or params['month']
     dd=args.days #already has default values
