@@ -22,7 +22,7 @@ setup(
                  ],
     long_description=desc,
     long_description_content_type = "text/markdown",
-    install_requires=["astropy>=4.2.1", "numpy>= 1.20.3", "exifread"
+    install_requires=["astropy", "numpy", "exifread"
                       ],
     extras_require = {
         "dev" : ["pytest>=3.7",
