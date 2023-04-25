@@ -51,15 +51,11 @@ parser.add_argument('-o','--output_file', help='complete path for output csv or 
 parser.add_argument('-c','--config_file', help='complete path for config file with inputs', default='.config')
 # parser.add_argument('-hdr','--header', help='Input header to inject to the FITS file.')
 
-headers=parser.add_argument_group('header', """Use the following arguments to create header from an input file to inject to the raw file. 
-1) Input file should have headers in the following manner:
-    BLOCSIZE=163840 | using # will comment the entire field.
-2) use -hdr with -hf to update input file supplied field values.
-    ex: gmrt_raw_toguppi -hf=headerinput.txt -hdr='TELESCOP=uGMRT,OBSERVER=John Doe'""")
+headers=parser.add_argument_group('header', """Parameters for injecting and printing headers.
+""")
 headers.add_argument('-hdr','--header', type=str, help="Comma separated input headers to inject to the raw file.", required=False)
 headers.add_argument('-hf', '--header-file', type=str, help="Input header from path to inject to the raw file.", required=False)
 headers.add_argument('-hfo', '--header-file-output', type=str, help="Header output with the correct padding.", required=False)
-headers.add_argument('-hio', '--header-direct-io', type=bool, help='If set to False bypasses padding for DIRECTIO=1 without affecting the header values. | Default: True')
 
 parser.add_argument('-mm', '--month', type=str, help="""comma separated month names""")
 parser.add_argument('-dd', '--days', type=str, default='1,32', help="""comma separated month names for range(a,b) 

@@ -1,4 +1,3 @@
-#! /home/avi/Solar_Data/Raw/archival_data_codes/env/py310/bin/python3.10
 # Solar Conventionality-based Organizing Observation data ( SCOOBI )
 
 import exifread, subprocess, argparse
@@ -96,18 +95,18 @@ def build_foldername(fitsname, **kwargs):
         If the destination folder is Not defined and final=True then, all the files will save inside final_datafinal.
 
     :rootfolder: 
-        (str) (Optional) (Default: "/data/archived_data_solar/")
+        (str) (Optional) (Default: "/data/solar_data/raw/Year2012/")
         
         This is the root folder inside which the destination folder is located For 
-        Ex. rootfolder="/data/archived_data_solar"
+        Ex. rootfolder="/data/solar_data/raw/Year2012/"
 
     *Return*
     
         (str) folder name for the fits file.
 
     """
-    params={'destfolder': None, 'final':False,
-     'rootfolder':'/data/archived_data_solar/'}
+    params={'destfolder': '/processed/', 'final':False,
+     'rootfolder':'/data/Solar_data/Avinash_codes/april/'}
     params.update(kwargs)
     if Path(params["rootfolder"]).exists():
         if params['destfolder'] is None:
@@ -117,7 +116,8 @@ def build_foldername(fitsname, **kwargs):
                 params['destfolder']='processed_data/'
         dcf=fitsname.split('-')
         dcf_date=dcf[3].split('T')[0]
-        currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
+        #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
+        currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[2]}/{dcf_date}/'
         if not Path(currentfolder).exists():
             Path(currentfolder).mkdir(parents=True,exist_ok=True)
         return f'{currentfolder}{fitsname}'
