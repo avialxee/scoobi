@@ -1,5 +1,5 @@
 import argparse
-from do import compare_datetime, read_tif, Time, tif2fits_bulk,compare_datetime_nofolder
+from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder
 from collections import defaultdict
 from pathlib import Path
 
@@ -52,7 +52,7 @@ parser.add_argument('-c','--config_file', help='complete path for config file wi
 # parser.add_argument('-hdr','--header', help='Input header to inject to the FITS file.')
 
 headers=parser.add_argument_group('header', """Parameters for injecting and printing headers.
-""")
+[[Work in Progress]]""")
 headers.add_argument('-hdr','--header', type=str, help="Comma separated input headers to inject to the raw file.", required=False)
 headers.add_argument('-hf', '--header-file', type=str, help="Input header from path to inject to the raw file.", required=False)
 headers.add_argument('-hfo', '--header-file-output', type=str, help="Header output with the correct padding.", required=False)
@@ -107,7 +107,11 @@ def cli():
     if args.rc: print(read_configfile(configfile))
     if args.cc: print(create_config(params,configfile))
     if args.rt: print(str(read_tif(params['tiff_folder'])['Image DateTime'].values))
-    if args.do: print(tif2fits_bulk(params['tiff_folder'].split(','), rootfolder=params['fits_folder']))
+    if args.do: 
+        if '.tif' not in params['tiff_folder']: 
+            print(tif2fits_bulk(params['tiff_folder'].split(','), rootfolder=params['fits_folder']))
+        else:
+            print(tif_to_fits(params['tiff_folder'], rootfolder=params['fits_folder']))
     
 if __name__=='__main__':
     cli()

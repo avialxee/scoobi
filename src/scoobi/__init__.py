@@ -203,7 +203,6 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
 def tif2fits_bulk(tiffolderlist, **kwargs):
     """
     takes input as list of string tiff folder paths and executes tif to fits using for loop to each folder path.
-
     see *tif_to_fits()* for the list of parameters.
     """
     if isinstance(tiffolderlist,list):
