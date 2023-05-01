@@ -38,7 +38,9 @@ options:
     - final_data
         > contains thumbnails
         - YEAR (int[4])
-            - DATE (int[6]) \
+          - MONTH (int[2])
+             -DAY (int[2])
+<!--              - DATE (int[6]) \ -->
                 *ex: 20221231*
                 - .fits file
                 - thumbnails/
