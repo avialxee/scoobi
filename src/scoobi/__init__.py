@@ -59,7 +59,7 @@ def header_dictfromtiff(tiffile):
             d=desc.split(':',1)
             exposure=Time.strptime(str(d[1])[2:-5].replace(' ',''),'%H:%M:%S.%f')
             exptime=exposure-expdef
-    header['EXPTIME']=round(float(exptime.sec),1)
+    header['EXPTIME']=(round(float(exptime.sec),1), 'Exposure time in unit second')
     return header
 
 def header_dictforfits(fitsfile, **kwargs):
@@ -162,9 +162,10 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
         pass
     with fits.open(fitsfile, 'update') as f:
         for hdu in f:
+            fitspath = Path(fitsfile)
             hdu.header.update(header)
             hdu.header['TELESCOP']=params['telescope']
-            hdu.header['FILENAME']=tifpath.name
+            hdu.header['FILENAME']=fitspath.name
             hdu.header['HISTORY']=f'{tiffile}'
             hdu.header['HISTORY']=f'scoobi'
 
@@ -215,9 +216,9 @@ def tif2fits_bulk(tiffolderlist, **kwargs):
 #log generation
 def compare_datetime(**kwargs):
     params={
-        'fits_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
-        'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
-        'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
+        'fits_folder':'/data/solar_data/processed/', 
+        'csv_file':'/data/solar_data/processed/scooby_logs/compare_datetime.csv',
+        'tiff_folder':'/data/solar_data/raw/SOLAR_DATA_2012/', 
         'month':['Jan','Feb','Mar', 'Apr','May', 'June','July','Aug','Sept','Oct','Nov','Dec'], 
         'days':range(1,32)
     }
@@ -284,9 +285,9 @@ def compare_datetime(**kwargs):
 
 def compare_datetime_nofolder(**kwargs):
     params={
-        'fits_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
-        'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
-        'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
+        'fits_folder':'/data/solar_data/processed/', 
+        'csv_file':'/data/solar_data/processed/scooby_logs/compare_datetime.csv',
+        'tiff_folder':'/data/solar_data/raw/SOLAR_DATA_2012/',  
         
     }
     params.update(kwargs)
