@@ -23,7 +23,7 @@ def read_configfile(filepath):
 
 def default_params():
     return {'fits_folder':'/data/solar_data/processed', 
-        'csv_file':'/data/solar_data/raw/',
+        'csv_file':'/data/solar_data/raw/log.csv',
         'tiff_folder':'/data/solar_data/raw/', 
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
