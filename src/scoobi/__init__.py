@@ -90,42 +90,23 @@ def build_foldername(fitsname, **kwargs):
 
         The destination folder name where all the files will get saved.
 
-    :final: 
-        (boolean) (Optional) (Default:False)
-        
-        If the destination folder is Not defined and final=True then, all the files will save inside final_datafinal.
-
-    :rootfolder: 
-        (str) (Optional) (Default: "/data/solar_data/raw/Year2012/")
-        
-        This is the root folder inside which the destination folder is located For 
-        Ex. rootfolder="/data/solar_data/raw/Year2012/"
-
     *Return*
     
         (str) folder name for the fits file.
 
     """
-    params={'destfolder': '/processed/', 'final':False,
-     'rootfolder':'/data/Solar_data/Avinash_codes/april/'}
+    params={'destfolder': 'processed/',
+    }
     params.update(kwargs)
-    if Path(params["rootfolder"]).exists():
-        if params['destfolder'] is None:
-            if params['final']:
-                params['destfolder']='final_data/'
-            else:
-                params['destfolder']='processed_data/'
-        dcf=fitsname.split('-')
-        dcf_date=dcf[3].split('T')[0]
-        #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
-        currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[2]}/{dcf_date}/'
-        if not Path(currentfolder).exists():
-            Path(currentfolder).mkdir(parents=True,exist_ok=True)
-        return f'{currentfolder}{fitsname}'
         
-    else:
-        raise Exception('Please check rootfolder path')
-
+    dcf=fitsname.split('-')
+    dcf_date=dcf[3].split('T')[0]
+    #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
+    currentfolder=f'{params["destfolder"]}{dcf[1]}/{dcf[2]}/{dcf_date}/'
+    if not Path(currentfolder).exists():
+        Path(currentfolder).mkdir(parents=True,exist_ok=True)
+    return f'{currentfolder}{fitsname}'
+        
 def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
     """
     *Parameters*
@@ -160,18 +141,6 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
         (str) (Optional) (Default:None)
 
         The destination folder name where all the files will get saved.
-
-    :final: 
-        (boolean) (Optional) (Default:False)
-        
-        If the destination folder is Not defined and final=True then, all the files will save inside final_datafinal.
-
-    :rootfolder: 
-        (str) (Optional) (Default: "/data/archived_data_solar/")
-        
-        This is the root folder inside which the destination folder is located For 
-        Ex. rootfolder="/data/archived_data_solar"
-
     """
     params={'fitsname':None, 'telescope':'HA'}
     params.update(kwargs)
@@ -224,22 +193,23 @@ def tif2fits_bulk(tiffolderlist, **kwargs):
     """
     params={'failed_folder':'corrupt/'}
     params.update(kwargs)
-    if 'tiff_folder' in params.keys(): params['failed_folder']=f"{params['tiff_folder']}/{params['failed_folder']}"
         
     if isinstance(tiffolderlist,list):
         for tifffolder in tiffolderlist:
             listtiff=search_file(tifffolder,'.tif', recursive=True)
             for f in listtiff:
-                try:
-                    tif_to_fits(f, **kwargs)
-                except:
+                if not 'corrupt' in f:
+                    params['failed_folder']=f"{Path(f).parent}/corrupt/"
                     try:
-                        # if Path(f).stat().st_size <= desiredsize:
-                        Path(params['failed_folder']).mkdir(parents=True,exist_ok=True)
-                        shutil.copy(str(f), str(f"{params['failed_folder']}/{Path(f).name}"))
+                        tif_to_fits(f, **kwargs)
                     except:
-                        with open('failed.scoobi','a') as sf:
-                            sf.write(f)
+                        try:
+                            # if Path(f).stat().st_size <= desiredsize:
+                            Path(params['failed_folder']).mkdir(parents=True,exist_ok=True)
+                            shutil.copy(str(f), str(f"{params['failed_folder']}/{Path(f).name}"))
+                        except:
+                            with open('failed.scoobi','+a') as sf:
+                                sf.write(f"{f}\n")
     else:
         raise Exception(f'Is "{tiffolderlist}" a list?')
         
