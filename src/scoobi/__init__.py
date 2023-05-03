@@ -9,6 +9,7 @@ import astropy.units as u
 from collections import defaultdict
 import csv
 import datetime
+import shutil
 
 
 class SCOOBI():
@@ -89,42 +90,23 @@ def build_foldername(fitsname, **kwargs):
 
         The destination folder name where all the files will get saved.
 
-    :final: 
-        (boolean) (Optional) (Default:False)
-        
-        If the destination folder is Not defined and final=True then, all the files will save inside final_datafinal.
-
-    :rootfolder: 
-        (str) (Optional) (Default: "/data/solar_data/raw/Year2012/")
-        
-        This is the root folder inside which the destination folder is located For 
-        Ex. rootfolder="/data/solar_data/raw/Year2012/"
-
     *Return*
     
         (str) folder name for the fits file.
 
     """
-    params={'destfolder': '/processed/', 'final':False,
-     'rootfolder':'/data/Solar_data/Avinash_codes/april/'}
+    params={'destfolder': 'processed/',
+    }
     params.update(kwargs)
-    if Path(params["rootfolder"]).exists():
-        if params['destfolder'] is None:
-            if params['final']:
-                params['destfolder']='final_data/'
-            else:
-                params['destfolder']='processed_data/'
-        dcf=fitsname.split('-')
-        dcf_date=dcf[3].split('T')[0]
-        #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
-        currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[2]}/{dcf_date}/'
-        if not Path(currentfolder).exists():
-            Path(currentfolder).mkdir(parents=True,exist_ok=True)
-        return f'{currentfolder}{fitsname}'
         
-    else:
-        raise Exception('Please check rootfolder path')
-
+    dcf=fitsname.split('-')
+    dcf_date=dcf[3].split('T')[0]
+    #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
+    currentfolder=f'{params["destfolder"]}{dcf[1]}/{dcf[2]}/{dcf_date}/'
+    if not Path(currentfolder).exists():
+        Path(currentfolder).mkdir(parents=True,exist_ok=True)
+    return f'{currentfolder}{fitsname}'
+        
 def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
     """
     *Parameters*
@@ -159,18 +141,6 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
         (str) (Optional) (Default:None)
 
         The destination folder name where all the files will get saved.
-
-    :final: 
-        (boolean) (Optional) (Default:False)
-        
-        If the destination folder is Not defined and final=True then, all the files will save inside final_datafinal.
-
-    :rootfolder: 
-        (str) (Optional) (Default: "/data/archived_data_solar/")
-        
-        This is the root folder inside which the destination folder is located For 
-        Ex. rootfolder="/data/archived_data_solar"
-
     """
     params={'fitsname':None, 'telescope':'HA'}
     params.update(kwargs)
@@ -183,10 +153,9 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
         # name convention : *S + DATETIME + TELESCOPE*
         fitsfile=f'S-{header["DATE-OBS"]}-{params["telescope"]}.fits'
         fitsfile=build_foldername(fitsfile, **kwargs)
-        
     
     if magick:
-        print(tiffile)
+        #print(tiffile)
         subprocess.run(['convert', str(tiffile), fitsfile])
         print(f'created {fitsfile}')
     else:
@@ -199,17 +168,47 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
             hdu.header['HISTORY']=f'{tiffile}'
             hdu.header['HISTORY']=f'scoobi'
 
+def thumb_gen(fits_folder, out_folder=None, thumb_folder="Thumbnails", force=False):
+    """
+    Creates thumbnails for the fits file provided in the fits_folder path.
+    """
+    if fits_folder:
+        allfile=search_file(f"{fits_folder}/",'.fits', recursive=True)
+        
+        for fitsfile in allfile:
+            if not out_folder:out_folder=Path(fitsfile).parent
+            jpgfolder=f"{out_folder}/{thumb_folder}"
+            jpgfile=f"{jpgfolder}/{Path(fitsfile).stem}.jpg"
+            
+            if not Path(jpgfolder).exists(): Path(jpgfolder).mkdir(parents=True,exist_ok=True)
+            if not Path(jpgfile).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile ])
+            
 
 def tif2fits_bulk(tiffolderlist, **kwargs):
     """
     takes input as list of string tiff folder paths and executes tif to fits using for loop to each folder path.
     see *tif_to_fits()* for the list of parameters.
+    If tif to fits conversion fails, the file is saved in "corrupt/" (can be changed from call) folder at the tiff source folder.
     """
+    params={'failed_folder':'corrupt/'}
+    params.update(kwargs)
+        
     if isinstance(tiffolderlist,list):
         for tifffolder in tiffolderlist:
             listtiff=search_file(tifffolder,'.tif', recursive=True)
             for f in listtiff:
-                tif_to_fits(f, **kwargs)
+                if not 'corrupt' in f:
+                    params['failed_folder']=f"{Path(f).parent}/corrupt/"
+                    try:
+                        tif_to_fits(f, **kwargs)
+                    except:
+                        try:
+                            # if Path(f).stat().st_size <= desiredsize:
+                            Path(params['failed_folder']).mkdir(parents=True,exist_ok=True)
+                            shutil.copy(str(f), str(f"{params['failed_folder']}/{Path(f).name}"))
+                        except:
+                            with open('failed.scoobi','+a') as sf:
+                                sf.write(f"{f}\n")
     else:
         raise Exception(f'Is "{tiffolderlist}" a list?')
         

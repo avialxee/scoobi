@@ -1,5 +1,5 @@
 import argparse
-from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder
+from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumb_gen
 from collections import defaultdict
 from pathlib import Path
 
@@ -39,7 +39,6 @@ def create_config(params, out='.config'):
                 o.write(f'{k}={v}\n')
     return f'configfile:{out}'
 
-
 parser = argparse.ArgumentParser('scoobi',description="""
 Solar Conventionality-based Organizing Observation data ( SCOOBI )""", formatter_class=argparse.RawDescriptionHelpFormatter)
 
@@ -67,6 +66,7 @@ parser.add_argument('-ct','--compare-time', action='store_true', dest='ct',help=
 parser.add_argument('-rc','--read-config',action='store_true',dest='rc', help=" read config, bool")
 parser.add_argument('-cc','--create-config',action='store_true',dest='cc', help=" create config, if called with rc would modify from and to the CONFIG_FILE path")
 parser.add_argument('-do','--do-conversion',action='store_true',dest='do', help=" create fits from tiff file and take care of the folder structure. Requires tiff_folder path")
+parser.add_argument('-th','--thumbnail', action='store_true', dest='th',help='True/False for creating thumbnails; The fits folder path is required but should be more specific e.g atleaset including the /processed; should not be used with -do')
 
 args=parser.parse_args()
 def cli():
@@ -109,9 +109,10 @@ def cli():
     if args.rt: print(str(read_tif(params['tiff_folder'])['Image DateTime'].values))
     if args.do: 
         if '.tif' not in params['tiff_folder']: 
-            print(tif2fits_bulk(params['tiff_folder'].split(','), rootfolder=params['fits_folder']))
+            print(tif2fits_bulk(params['tiff_folder'].split(','), destfolder=params['fits_folder']))
         else:
-            print(tif_to_fits(params['tiff_folder'], rootfolder=params['fits_folder']))
-    
+            print(tif_to_fits(params['tiff_folder'], destfolder=params['fits_folder']))
+    if args.th: thumb_gen(params['fits_folder'])
+        
 if __name__=='__main__':
     cli()
