@@ -34,25 +34,25 @@ options:
 > Front-end Processed data for access through database
 
 ### Folder structure
-- archived_data_solar
-    - final_data
-        > contains thumbnails
+- solar_data
+    - final
+        > contains fits files and thumbnails
         - YEAR (int[4])
-            - DATE (int[6]) \
-                *ex: 20221231*
+          - MONTH (int[2])
+             - DAY (int[2])
                 - .fits file
                 - thumbnails/
                     - .fits file path.stem + 'jpg'
         
-    - processed_data 
-        > contains thumbnails
+    - processed
+        > contains fits files
         - YEAR (int[4])
-            - DATE (int[6]) \
-                *ex: 20221231*
+           - MONTH (int[2])
+             - DAY (int[2]
                 - .fits file
                 - thumbnails/
                     - .fits file path.stem + 'jpg'
-    - raw_data
+    - raw
 
 - YEAR (int[4])
     - Month (int[2])
