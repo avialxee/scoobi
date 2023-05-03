@@ -109,9 +109,9 @@ def cli():
     if args.rt: print(str(read_tif(params['tiff_folder'])['Image DateTime'].values))
     if args.do: 
         if '.tif' not in params['tiff_folder']: 
-            print(tif2fits_bulk(params['tiff_folder'].split(','), rootfolder=params['fits_folder']))
+            print(tif2fits_bulk(params['tiff_folder'].split(','), destfolder=params['fits_folder']))
         else:
-            print(tif_to_fits(params['tiff_folder'], rootfolder=params['fits_folder']))
+            print(tif_to_fits(params['tiff_folder'], destfolder=params['fits_folder']))
     if args.th: thumb_gen(params['fits_folder'])
         
 if __name__=='__main__':
