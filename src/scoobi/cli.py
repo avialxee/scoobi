@@ -22,9 +22,9 @@ def read_configfile(filepath):
     return params
 
 def default_params():
-    return {'fits_folder':'/home/avi/archived_data_solar/processed_data/2012/', 
-        'csv_file':'/home/avi/archived_data_solar/raw_data/archival_data_codes/scooby_logs/2012all_compare_datetime.csv',
-        'tiff_folder':'/home/avi/archived_data_solar/raw_data/SOLAR_DATA_2012/', 
+    return {'fits_folder':'/data/solar_data/processed', 
+        'csv_file':'/data/solar_data/raw/',
+        'tiff_folder':'/data/solar_data/raw/', 
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
 
