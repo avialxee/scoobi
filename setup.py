@@ -5,7 +5,7 @@ with open("README.md", "r") as rdme:
 
 setup(
     name = 'scoobi',
-    version = '0.0.1.1',
+    version = '0.0.1.2',
     url='https://github.com/avialxee/scoobi',
     author='Avinash Kumar',
     author_email='avialxee@gmail.com',
@@ -30,7 +30,7 @@ setup(
     },
      entry_points={ 
         "console_scripts": [
-            "scoobi=scoobi.cli:cli",
+            "scoobi=scoobi.cli:cli"
         ],
     },
 
