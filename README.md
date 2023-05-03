@@ -69,10 +69,10 @@ header:
                 - .fits file
                     
     - raw
-
-- YEAR (int[4])
-    - Month (int[2])
-        - Day (int[2])
+        > raw telescope data
+      - YEAR (int[4])
+          - Month (int[2])
+              - Day (int[2])
 
 
 ### Naming Convention suggested by committee
