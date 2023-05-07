@@ -1,5 +1,5 @@
 import argparse
-from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumb_gen
+from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumb_gen,fits2fits_bulk,fits_to_fits
 from collections import defaultdict
 from pathlib import Path
 
@@ -24,7 +24,8 @@ def read_configfile(filepath):
 def default_params():
     return {'fits_folder':'/data/solar_data/processed', 
         'csv_file':'/data/solar_data/raw/log.csv',
-        'tiff_folder':'/data/solar_data/raw/', 
+        'tiff_folder':'/data/solar_data/raw/',
+        'raw_folder':'/data/solar_data/raw/', 
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
 
@@ -45,7 +46,8 @@ Solar Conventionality-based Organizing Observation data ( SCOOBI )""", formatter
 # pa = parser.add_subparsers(help='compare datetimes') # subparser is used like $pip "install"
 
 parser.add_argument('-f','--fits_folder', help='source') #positionals
-parser.add_argument('-t','--tiff_folder', help='tiff folder path')
+parser.add_argument('-t','--tiff_folder', help='RAW TIFF folder path')
+parser.add_argument('-r','--raw_folder', help='RAW FITS folder path')
 parser.add_argument('-o','--output_file', help='complete path for output csv or log file.')
 parser.add_argument('-c','--config_file', help='complete path for config file with inputs', default='.config')
 # parser.add_argument('-hdr','--header', help='Input header to inject to the FITS file.')
@@ -65,7 +67,7 @@ parser.add_argument('-rt','--read-time', action='store_true', dest='rt',help='re
 parser.add_argument('-ct','--compare-time', action='store_true', dest='ct',help='compares time from a fits file to a tiff file') 
 parser.add_argument('-rc','--read-config',action='store_true',dest='rc', help=" read config, bool")
 parser.add_argument('-cc','--create-config',action='store_true',dest='cc', help=" create config, if called with rc would modify from and to the CONFIG_FILE path")
-parser.add_argument('-do','--do-conversion',action='store_true',dest='do', help=" create fits from tiff file and take care of the folder structure. Requires tiff_folder path")
+parser.add_argument('-do','--do-conversion',action='store_true',dest='do', help=" create fits from tiff/fits raw file and take care of the folder structure. Requires tiff_folder or raw_folder path")
 parser.add_argument('-th','--thumbnail', action='store_true', dest='th',help='True/False for creating thumbnails; The fits folder path is required but should be more specific e.g atleaset including the /processed; should not be used with -do')
 
 args=parser.parse_args()
@@ -75,6 +77,7 @@ def cli():
     if args.fits_folder: params['fits_folder']=args.fits_folder
     if args.output_file: params['csv_file']=args.output_file
     if args.tiff_folder: params['tiff_folder']=args.tiff_folder
+    if args.raw_folder: params['raw_folder']=args.raw_folder
     if args.header_file_output: print(args.header_file_output)
     if args.header: 
         hdrin=str(args.header).replace(' ','')
@@ -108,10 +111,16 @@ def cli():
     if args.cc: print(create_config(params,configfile))
     if args.rt: print(str(read_tif(params['tiff_folder'])['Image DateTime'].values))
     if args.do: 
-        if '.tif' not in params['tiff_folder']: 
-            print(tif2fits_bulk(params['tiff_folder'].split(','), destfolder=params['fits_folder']))
-        else:
-            print(tif_to_fits(params['tiff_folder'], destfolder=params['fits_folder']))
+        if args.tiff_folder:
+            if '.tif' not in params['tiff_folder']: 
+                print(tif2fits_bulk(params['tiff_folder'].split(','), destfolder=params['fits_folder']))
+            else:
+                print(tif_to_fits(params['tiff_folder'], destfolder=params['fits_folder']))
+        if args.raw_folder:
+            if not any(fts in params['raw_folder'] for fts in ['.fits', '.fts']): 
+                print(fits2fits_bulk(params['raw_folder'].split(','), destfolder=params['fits_folder']))
+            else:
+                print(fits_to_fits(params['raw_folder'], destfolder=params['fits_folder']))
     if args.th: thumb_gen(params['fits_folder'])
         
 if __name__=='__main__':

@@ -75,7 +75,8 @@ def header_dictforfits(fitsfile, **kwargs):
 
 def build_foldername(fitsname, **kwargs):
     """
-    Builds folder name taking input of the fitsfile name
+    Builds folder name taking input of the fitsfile name i.e
+    destfolder + 
 
     *Parameters*
     
@@ -86,13 +87,13 @@ def build_foldername(fitsname, **kwargs):
         Ex. S-2022-11-01T02:02:20.001-HA.fits
 
     :destfolder: 
-        (str) (Optional) (Default:None) (Superseeds final)
+        (str) (Optional) (Default:None)
 
         The destination folder name where all the files will get saved.
 
     *Return*
     
-        (str) folder name for the fits file.
+        (str) complete path for the fitsfile.
 
     """
     params={'destfolder': 'processed/',
@@ -107,6 +108,70 @@ def build_foldername(fitsname, **kwargs):
         Path(currentfolder).mkdir(parents=True,exist_ok=True)
     return f'{currentfolder}{fitsname}'
         
+def fits_to_fits(fitsfile_i, header=None, **kwargs):
+    """
+    *Parameters*
+    
+    :fitsfile_i:
+        (str) (Required)
+
+        Full path of the RAW FITS file as input. This is a 3D FITS file.
+
+    :header:
+        (dict) (Optional)
+
+        If provided, it will use headers from FITS as well the supplied parameters to write to FITS.
+    
+    *kwargs*
+
+    :fitsname: 
+        (str) (Optional) (Default=None)
+
+        This is the conventional name of the fitsfile which will be used to build the folder path.
+        If not provided will build name according to the timestamp in the FITS header.
+        Ex. S-2022-11-01T02:02:20.001-HA.fits
+    
+    :initial:
+        (str) (Optional) (Default='S')
+        Convential initial for the type of file in the output filename e.g
+        - S: Science
+        - F: Flat
+        - D: Dark
+
+    :destfolder: 
+        (str) (Optional) (Default:see build_foldername())
+
+        The destination folder name where all the files will get saved.
+
+    :telescope:
+        (str) (Optional) (Default:HA)
+        The Telescope name is used to create the header info and filename
+    """
+    params={'fitsname':None, 'telescope':'HA', 'initial':'S'}
+    params.update(kwargs)
+    fitsfile_o=None
+    
+    if header:
+        pass
+    print(f'{fitsfile_i}')
+    with fits.open(fitsfile_i, 'readonly',) as hdul:
+        if len(hdul[0].data.shape)==3:hdul[0].data=hdul[0].data[0]
+        date=hdul[0].header['DATE-OBS']
+        for hdu in hdul:
+            hdu.header.update(header)
+            hdu.header['TELESCOP']=params['telescope']
+            hdu.header['FILENAME']=Path(fitsfile_i).name
+            
+        if params['fitsname'] is None:
+            # name convention : *S + DATETIME + TELESCOPE*
+            fitsfile_o=f"{params['initial']}-{date}-{params['telescope']}.fits"
+            fitsfile_o=build_foldername(fitsfile_o, **kwargs)
+        else:
+            fitsfile_o=build_foldername(params['fitsname'])
+        hdul.writeto(fitsfile_o, overwrite=True)
+    return fitsfile_o
+    # data,hdrdata=scidata[0][0], scidata[1] # taking data[0] as data is 3D
+    
 def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
     """
     *Parameters*
@@ -114,7 +179,7 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
     :tiffile:
         (str) (Required)
 
-        Full path of the TIFF ile that needs to be converted to FITS.
+        Full path of the TIFF file that needs to be converted to FITS.
 
     :magick:
         (boolean) (Optional)
@@ -127,6 +192,10 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
 
         If provided, it will use headers from TIFF as well the supplied parameters to write to FITS.
     
+    :telescope:
+        (str) (Optional) (Default:HA)
+        The Telescope name is used to create the header info and filename
+
     kwargs
     ------
 
@@ -177,13 +246,42 @@ def thumb_gen(fits_folder, out_folder=None, thumb_folder="Thumbnails", force=Fal
         allfile=search_file(f"{fits_folder}/",'.fits', recursive=True)
         
         for fitsfile in allfile:
-            if not out_folder:out_folder=Path(fitsfile).parent
+            print(f"{fitsfile} is read")
+            out_folder=Path(fitsfile).parent
             jpgfolder=f"{out_folder}/{thumb_folder}"
             jpgfile=f"{jpgfolder}/{Path(fitsfile).stem}.jpg"
-            
+            print(f"jpgfolder:{jpgfolder}")
             if not Path(jpgfolder).exists(): Path(jpgfolder).mkdir(parents=True,exist_ok=True)
             if not Path(jpgfile).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile ])
-            
+
+def fits2fits_bulk(fitsfolderlist, **kwargs):
+    """
+    takes input as list of string fits folder paths and executes fits_to_fits() using for loop to each folder path.
+    see *fits_to_fits()* for the list of parameters.
+    If fits to fits conversion fails, the file is saved in "corrupt/" (can be changed from call) folder at the tiff source folder.
+    """
+    params={'failed_folder':'corrupt/'}
+    params.update(kwargs)
+        
+    if isinstance(fitsfolderlist,list):
+        for fitsfolder in fitsfolderlist:
+            listfits=search_file(fitsfolder,'.fits', recursive=True)
+            for f in listfits:
+                if not 'corrupt' in f:
+                    params['failed_folder']=f"{Path(f).parent}/corrupt/"
+                    try:
+                        fits_to_fits(f, **kwargs)
+                    except Exception as e:
+                        try:
+                            # if Path(f).stat().st_size <= desiredsize:
+                            print(e)
+                            Path(params['failed_folder']).mkdir(parents=True,exist_ok=True)
+                            shutil.copy(str(f), str(f"{params['failed_folder']}/{Path(f).name}"))
+                        except:
+                            with open('failed.scoobi','+a') as sf:
+                                sf.write(f"{f}\n")
+    else:
+        raise Exception(f'Is "{fitsfolderlist}" a list?')           
 
 def tif2fits_bulk(tiffolderlist, **kwargs):
     """
