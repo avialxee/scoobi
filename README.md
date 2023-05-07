@@ -2,8 +2,8 @@
 Solar Conventionality-based Organizing Observation data ( SCOOBI )
 
 ```bash
-usage: scoobi [-h] [-f FITS_FOLDER] [-t TIFF_FOLDER] [-o OUTPUT_FILE] [-c CONFIG_FILE] [-hdr HEADER] [-hf HEADER_FILE]
-              [-hfo HEADER_FILE_OUTPUT] [-mm MONTH] [-dd DAYS] [--no-datedfolder] [-rt] [-ct] [-rc] [-cc] [-do] [-th]
+age: scoobi [-h] [-f FITS_FOLDER] [-t TIFF_FOLDER] [-r RAW_FOLDER] [-o OUTPUT_FILE] [-c CONFIG_FILE] [-hdr HEADER] [-hf HEADER_FILE] [-hfo HEADER_FILE_OUTPUT]
+              [-mm MONTH] [-dd DAYS] [--no-datedfolder] [-rt] [-ct] [-rc] [-cc] [-do] [-th]
 
 Solar Conventionality-based Organizing Observation data ( SCOOBI )
 
@@ -12,7 +12,9 @@ optional arguments:
   -f FITS_FOLDER, --fits_folder FITS_FOLDER
                         source
   -t TIFF_FOLDER, --tiff_folder TIFF_FOLDER
-                        tiff folder path
+                        RAW TIFF folder path
+  -r RAW_FOLDER, --raw_folder RAW_FOLDER
+                        RAW FITS folder path
   -o OUTPUT_FILE, --output_file OUTPUT_FILE
                         complete path for output csv or log file.
   -c CONFIG_FILE, --config_file CONFIG_FILE
@@ -26,9 +28,9 @@ optional arguments:
   -ct, --compare-time   compares time from a fits file to a tiff file
   -rc, --read-config    read config, bool
   -cc, --create-config  create config, if called with rc would modify from and to the CONFIG_FILE path
-  -do, --do-conversion  create fits from tiff file and take care of the folder structure. Requires tiff_folder path
-  -th, --thumbnail      True/False for creating thumbnails; The fits folder path is required but should be more specific
-                        e.g atleaset including the /processed; should not be used with -do
+  -do, --do-conversion  create fits from tiff/fits raw file and take care of the folder structure. Requires tiff_folder or raw_folder path
+  -th, --thumbnail      True/False for creating thumbnails; The fits folder path is required but should be more specific e.g atleaset including the /processed; should
+                        not be used with -do
 
 header:
   Parameters for injecting and printing headers.
