@@ -57,8 +57,8 @@ header:
     - final
         > contains fits files and thumbnails
         - YEAR (int[4])
-          - MONTH (int[2])
-             - DAY (int[2])
+          - MONTH (str[3])
+             - DAY (int[8])
                 - .fits file
                 - thumbnails/
                     - .fits file path.stem + 'jpg'
@@ -66,8 +66,8 @@ header:
     - processed
         > contains fits files
         - YEAR (int[4])
-           - MONTH (int[2])
-             - DAY (int[2])
+           - MONTH (str[3])
+             - DAY (int[8])
                 - .fits file
                     
     - raw
