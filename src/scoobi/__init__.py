@@ -101,10 +101,10 @@ def build_foldername(fitsname, **kwargs):
     params.update(kwargs)
         
     dcf = fitsname.split('-')
-    dcf_date = dcf[3].split('T')[0]
+    date_only = dcf[3].split('T')[0]
     date_obs = datetime.datetime.strptime(date_only, '%Y-%m-%d')
-    #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{dcf_date}/'
-    currentfolder=f'{params["rootfolder"]}{dcf[1]}/{date_obs.strftime("%b").capitalize()}/{dcf[1]}{dcf[2]}{dcf_date}/'
+    #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{date_only}/'
+    currentfolder=f'{params["rootfolder"]}{dcf[1]}/{date_obs.strftime("%b").capitalize()}/{dcf[1]}{dcf[2]}{date_only}/'
     if not Path(currentfolder).exists():
         Path(currentfolder).mkdir(parents=True,exist_ok=True)
     return f'{currentfolder}{fitsname}'
