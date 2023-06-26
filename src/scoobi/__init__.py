@@ -249,7 +249,13 @@ def thumb_gen(fits_folder, out_folder=None, thumb_folder="Thumbnails", force=Fal
         for fitsfile in allfile:
             print(f"{fitsfile} is read")
             out_folder=Path(fitsfile).parent
+            absolute_path = "/data/solar_data/Thumbnails"
+            desired_parts = out_folder.parts[4:10]
+            destination_path=f'{absolute_path}/{Path(*desired_parts)}'
+            jpgfolder=f"{destination_path}/{thumb_folder}"
+            """
             jpgfolder=f"{out_folder}/{thumb_folder}"
+            """
             jpgfile=f"{jpgfolder}/{Path(fitsfile).stem}.jpg"
             print(f"jpgfolder:{jpgfolder}")
             if not Path(jpgfolder).exists(): Path(jpgfolder).mkdir(parents=True,exist_ok=True)
