@@ -249,12 +249,20 @@ def thumb_gen(fits_folder, out_folder=None, thumb_folder="Thumbnails", force=Fal
         for fitsfile in allfile:
             print(f"{fitsfile} is read")
             out_folder=Path(fitsfile).parent
-            jpgfolder=f"{out_folder}/{thumb_folder}"
+            absolute_path = "/data/solar_data/Thumbnails"
+            desired_parts = out_folder.parts[4:10]
+            destination_path=f'{absolute_path}/{Path(*desired_parts)}'
+            jpgfolder=f"{destination_path}/{thumb_folder}"
+            jpgfolder1=f"{out_folder}/{thumb_folder}"
             jpgfile=f"{jpgfolder}/{Path(fitsfile).stem}.jpg"
+            jpgfile1=f"{jpgfolder1}/{Path(fitsfile).stem}.jpg"
             print(f"jpgfolder:{jpgfolder}")
+            
             if not Path(jpgfolder).exists(): Path(jpgfolder).mkdir(parents=True,exist_ok=True)
             if not Path(jpgfile).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile ])
-
+            if not Path(jpgfolder1).exists(): Path(jpgfolder1).mkdir(parents=True,exist_ok=True)
+            if not Path(jpgfile1).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile1 ])
+                
 def fits2fits_bulk(fitsfolderlist, **kwargs):
     """
     takes input as list of string fits folder paths and executes fits_to_fits() using for loop to each folder path.
