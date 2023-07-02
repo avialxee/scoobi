@@ -10,6 +10,7 @@ from collections import defaultdict
 import csv
 import datetime
 import shutil
+from scoobi.config import usemagick, thumbnails, thumbnails_root, rootfolder
 
 
 class SCOOBI():
@@ -73,41 +74,41 @@ def header_dictforfits(fitsfile, **kwargs):
             hdu.header.update(header_params)
             hdu.header['FILENAME'] = tifpath.name
 
-def build_foldername(fitsname, **kwargs):
+def build_foldername(filename,createdir=True, **kwargs):
     """
     Builds folder name taking input of the fitsfile name i.e
     destfolder + 
 
     *Parameters*
     
-    :fitsname: 
+    :filename: 
         (str) (Required)
 
         This is the conventional name of the fitsfile which will be used to build the folder path.
         Ex. S-2022-11-01T02:02:20.001-HA.fits
 
     :destfolder: 
-        (str) (Optional) (Default:None)
+        (str) (Optional) (Default:'')
 
         The destination folder name where all the files will get saved.
 
     *Return*
     
-        (str) complete path for the fitsfile.
+        (str) complete path for the file.
 
     """
-    params={'destfolder': 'processed/',
+    params={'destfolder': '',
     }
     params.update(kwargs)
-        
-    dcf = fitsname.split('-')
-    date_only = dcf[3].split('T')[0]
-    date_obs = datetime.datetime.strptime(date_only, '%Y-%m-%d')
-    #currentfolder=f'{params["rootfolder"]}{params["destfolder"]}{dcf[1]}/{dcf[1]}{dcf[2]}{date_only}/'
-    currentfolder=f'{params["rootfolder"]}{dcf[1]}/{date_obs.strftime("%b").capitalize()}/{dcf[1]}{dcf[2]}{date_only}/'
-    if not Path(currentfolder).exists():
-        Path(currentfolder).mkdir(parents=True,exist_ok=True)
-    return f'{currentfolder}{fitsname}'
+    if not params['destfolder']: params['destfolder']=f"{params['fits_folder']}"
+    dbf=filename.split('-') # date-wise build foldername
+    dbf_date=dbf[3].split('T')[0]
+    # YEAR[int4]/MONTH[str3]/yyyymmdd/S-yyyy-mm-ddTtime.fits
+    mm_str=datetime.datetime.strptime(dbf[2],"%m").strftime("%b").capitalize()
+    builtfolder=f'{params["destfolder"]}{dbf[1]}/{mm_str}/{dbf[1]}{dbf[2]}{dbf_date}/'
+    if not Path(builtfolder).exists() and createdir:
+        Path(builtfolder).mkdir(parents=True,exist_ok=True)
+    return f'{builtfolder}{filename}'
         
 def fits_to_fits(fitsfile_i, header=None, **kwargs):
     """
@@ -154,10 +155,11 @@ def fits_to_fits(fitsfile_i, header=None, **kwargs):
     
     if header:
         pass
-    print(f'{fitsfile_i}')
     with fits.open(fitsfile_i, 'readonly',) as hdul:
+        print('fits opned')
         if len(hdul[0].data.shape)==3:hdul[0].data=hdul[0].data[0]
         date=hdul[0].header['DATE-OBS']
+        print(f'read date:{date}')
         for hdu in hdul:
             hdu.header.update(header)
             hdu.header['TELESCOP']=params['telescope']
@@ -165,15 +167,20 @@ def fits_to_fits(fitsfile_i, header=None, **kwargs):
             
         if params['fitsname'] is None:
             # name convention : *S + DATETIME + TELESCOPE*
+            print('building foldername:')
+
             fitsfile_o=f"{params['initial']}-{date}-{params['telescope']}.fits"
             fitsfile_o=build_foldername(fitsfile_o, **kwargs)
+            print(fitsfile_o)
         else:
+            
             fitsfile_o=build_foldername(params['fitsname'])
+            
         hdul.writeto(fitsfile_o, overwrite=True)
     return fitsfile_o
     # data,hdrdata=scidata[0][0], scidata[1] # taking data[0] as data is 3D
     
-def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
+def tif_to_fits(tiffile, magick=usemagick, header=None, **kwargs):
     """
     *Parameters*
     
@@ -239,30 +246,39 @@ def tif_to_fits(tiffile, magick=True, header=None, **kwargs):
             hdu.header['HISTORY']=f'{tiffile}'
             hdu.header['HISTORY']=f'scoobi'
 
-def thumb_gen(fits_folder, out_folder=None, thumb_folder="Thumbnails", force=False):
+def thumbgen(fitsfile, out_folder=None, thumb_folder=thumbnails, force=False):
     """
     Creates thumbnails for the fits file provided in the fits_folder path.
+    depends on build_foldername 
+    else if thumb_folder is specified with out_folder jpgfile is created accordingly.
+    ex. out_folder,thumb_foler='/data/solardata/','Thumbnails/'
+
     """
-    if fits_folder:
-        allfile=search_file(f"{fits_folder}/",'.fits', recursive=True)
+    if fitsfile:        
+        jpgfile_name=f"{Path(fitsfile).stem}.jpg"
+        if out_folder is None:out_folder=Path(fitsfile).parent
+        jpgfile=f'{out_folder}/{thumb_folder}/{jpgfile_name}'
+        if not Path(jpgfile).exists(): Path(jpgfile).parent.mkdir(parents=True,exist_ok=True)
+        if not Path(jpgfile).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile ])
+        return jpgfile
+
+def thumbgen_bulk(fits_folder, thumb_folder=thumbnails, thumb_root=thumbnails_root, force=False, **kwargs):
+    """
+    calls thumb_gen for converting fits to jpg and then copies to a directory specified by :thumb_root:
+    """
+    
+    allfile=search_file(f"{fits_folder}/",'.fits', recursive=True)
+    for fitsfile in allfile:
+        jpgfile=thumbgen(fitsfile,thumb_folder=thumb_folder,force=force)
+
+        outfolder_root=build_foldername(Path(fitsfile).name,createdir=False, destfolder='/')
+        jpgfile_root=f"{thumb_root}/{Path(outfolder_root).parent}/{Path(jpgfile).name}"
         
-        for fitsfile in allfile:
-            print(f"{fitsfile} is read")
-            out_folder=Path(fitsfile).parent
-            absolute_path = "/data/solar_data/Thumbnails"
-            desired_parts = out_folder.parts[4:10]
-            destination_path=f'{absolute_path}/{Path(*desired_parts)}'
-            jpgfolder=f"{destination_path}/{thumb_folder}"
-            jpgfolder1=f"{out_folder}/{thumb_folder}"
-            jpgfile=f"{jpgfolder}/{Path(fitsfile).stem}.jpg"
-            jpgfile1=f"{jpgfolder1}/{Path(fitsfile).stem}.jpg"
-            print(f"jpgfolder:{jpgfolder}")
+        if not Path(jpgfile_root).exists() or force: 
+            Path(jpgfile_root).parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy(str(jpgfile), str(jpgfile_root))
+
             
-            if not Path(jpgfolder).exists(): Path(jpgfolder).mkdir(parents=True,exist_ok=True)
-            if not Path(jpgfile).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile ])
-            if not Path(jpgfolder1).exists(): Path(jpgfolder1).mkdir(parents=True,exist_ok=True)
-            if not Path(jpgfile1).exists() or force: subprocess.run(["convert", fitsfile,"-linear-stretch","1x1","-resize", "56%", jpgfile1 ])
-                
 def fits2fits_bulk(fitsfolderlist, **kwargs):
     """
     takes input as list of string fits folder paths and executes fits_to_fits() using for loop to each folder path.

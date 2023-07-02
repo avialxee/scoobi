@@ -1,7 +1,8 @@
 import argparse
-from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumb_gen,fits2fits_bulk,fits_to_fits
+from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumbgen_bulk,fits2fits_bulk,fits_to_fits
 from collections import defaultdict
 from pathlib import Path
+from scoobi.config import rootfolder,processedfolder,processed,thumbnails_root,rawfolder,hc,lc,darks,flat,corrupted_folder
 
 def read_configfile(filepath):
     with open(filepath,'r') as f:
@@ -22,10 +23,11 @@ def read_configfile(filepath):
     return params
 
 def default_params():
-    return {'fits_folder':'/data/solar_data/processed', 
-        'csv_file':'/data/solar_data/raw/log.csv',
-        'tiff_folder':'/data/solar_data/raw/',
-        'raw_folder':'/data/solar_data/raw/', 
+    return {'fits_folder':processedfolder,
+        'csv_file':f'{rootfolder}log.csv',
+        'tiff_folder':rawfolder,
+        'raw_folder':rawfolder, 
+        'rootfolder':rootfolder,
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
 
@@ -121,7 +123,7 @@ def cli():
                 print(fits2fits_bulk(params['raw_folder'].split(','), destfolder=params['fits_folder']))
             else:
                 print(fits_to_fits(params['raw_folder'], destfolder=params['fits_folder']))
-    if args.th: thumb_gen(params['fits_folder'])
+    if args.th: print(thumbgen_bulk(params['fits_folder'],rootfolder=params['rootfolder']))
         
 if __name__=='__main__':
     cli()
