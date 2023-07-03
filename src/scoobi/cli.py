@@ -31,7 +31,7 @@ def default_params():
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
 
-def create_config(params, out='.config'):
+def create_config(params, out='config.py'):
     with open(out, 'w') as o:
         for k,v in params.items():
             if isinstance(v,list) : 

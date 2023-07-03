@@ -11,6 +11,7 @@ import csv
 import datetime
 import shutil
 from scoobi.config import usemagick, thumbnails, thumbnails_root, rootfolder
+from scoobi.config import  dark,dark_cadence,dark_initial,flat,flat_cadence,flat_initial,hc,hc_cadence,hc_initial,lc,lc_cadence,lc_initial
 
 
 class SCOOBI():
@@ -149,17 +150,16 @@ def fits_to_fits(fitsfile_i, header=None, **kwargs):
         (str) (Optional) (Default:HA)
         The Telescope name is used to create the header info and filename
     """
+    if header:
+        pass
     params={'fitsname':None, 'telescope':'HA', 'initial':'S'}
     params.update(kwargs)
     fitsfile_o=None
-    
-    if header:
-        pass
-    with fits.open(fitsfile_i, 'readonly',) as hdul:
-        print('fits opned')
-        if len(hdul[0].data.shape)==3:hdul[0].data=hdul[0].data[0]
-        date=hdul[0].header['DATE-OBS']
-        print(f'read date:{date}')
+    def __writefilefromhdul(hdul,date):
+        """
+        internal function to read hdul and date to fill headers and generate fitsfile name creating directory where necessary.
+        """
+        date=date.strftime('%Y-%m-%dT%H:%M:%S.%f')
         for hdu in hdul:
             hdu.header.update(header)
             hdu.header['TELESCOP']=params['telescope']
@@ -171,14 +171,37 @@ def fits_to_fits(fitsfile_i, header=None, **kwargs):
 
             fitsfile_o=f"{params['initial']}-{date}-{params['telescope']}.fits"
             fitsfile_o=build_foldername(fitsfile_o, **kwargs)
-            print(fitsfile_o)
         else:
-            
             fitsfile_o=build_foldername(params['fitsname'])
-            
         hdul.writeto(fitsfile_o, overwrite=True)
+        return fitsfile_o
+    
+    with fits.open(fitsfile_i, 'readonly',) as hdul:
+        date=hdul[0].header['DATE-OBS']
+        date=datetime.datetime.strptime(date,'%Y-%m-%dT%H:%M:%S.%f')
+        cadence=0
+        if dark in fitsfile_i:
+            params['initial']=dark_initial
+            cadence=dark_cadence
+        elif flat in fitsfile_i:
+            params['initial']=flat_initial
+            cadence=flat_cadence
+        elif hc in fitsfile_i:
+            params['initial']=hc_initial
+            cadence=hc_cadence
+        elif lc in fitsfile_i:
+            params['initial']=lc_initial
+            cadence=lc_cadence
+            
+
+        if len(hdul[0].data.shape)==3:                                  # checks if data is cube
+            for i, hdul_slice in enumerate(hdul[0].data):
+                td=datetime.timedelta(seconds=cadence*i)
+                date=date+td
+                fitsfile_o=__writefilefromhdul(hdul_slice,date)
+        else:
+            fitsfile_o=__writefilefromhdul(hdul,date)
     return fitsfile_o
-    # data,hdrdata=scidata[0][0], scidata[1] # taking data[0] as data is 3D
     
 def tif_to_fits(tiffile, magick=usemagick, header=None, **kwargs):
     """
