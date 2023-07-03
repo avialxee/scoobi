@@ -121,7 +121,9 @@ def cli():
 
     if args.ct and not args.no_datedfolder: compare_datetime(**params)
     if args.no_datedfolder and args.ct: compare_datetime_nofolder(**params)
-    if args.rc: print(read_configfile(configfile))
+    if args.rc: 
+        params=read_configfile(configfile)
+        print(params)
     if args.cc: print(create_config(params,configfile))
     if args.rt: print(str(read_tif(params['tiff_folder'])['Image DateTime'].values))
     if args.do: 
