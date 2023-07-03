@@ -2,7 +2,7 @@ import argparse
 from scoobi import compare_datetime, read_tif, Time, tif2fits_bulk, tif_to_fits, compare_datetime_nofolder, thumbgen_bulk,fits2fits_bulk,fits_to_fits
 from collections import defaultdict
 from pathlib import Path
-from scoobi.config import rootfolder,processedfolder,processed,thumbnails_root,rawfolder,hc,lc,darks,flat,corrupted_folder
+from scoobi.config import rootfolder,processedfolder,rawfolder,config
 
 def read_configfile(filepath):
     with open(filepath,'r') as f:
@@ -19,19 +19,30 @@ def read_configfile(filepath):
                     dd=v.split(',')
                     params[k]=range(int(dd[0]),int(dd[1])) 
                 else:
+                    try:
+                        v=int(v)
+                    except:
+                        v=str(v)
+                        if 'True' in v: v=v.lower()=='true'
+                        elif 'False' in v:v=v.lower()=='true'
+                    
                     params[k]=v
     return params
 
 def default_params():
-    return {'fits_folder':processedfolder,
+    params= {'fits_folder':processedfolder,
         'csv_file':f'{rootfolder}log.csv',
         'tiff_folder':rawfolder,
         'raw_folder':rawfolder, 
         'rootfolder':rootfolder,
         'month':'Jan,Feb,Mar,Apr,May,June,July,Aug,Sept,Oct,Nov,Dec', 
         'days':'1,32'}
+    params.update(config)
+    return params
 
 def create_config(params, out='config.py'):
+    # if Path(out).exists():
+    
     with open(out, 'w') as o:
         for k,v in params.items():
             if isinstance(v,list) : 
@@ -41,6 +52,7 @@ def create_config(params, out='config.py'):
             else:
                 o.write(f'{k}={v}\n')
     return f'configfile:{out}'
+    
 
 parser = argparse.ArgumentParser('scoobi',description="""
 Solar Conventionality-based Organizing Observation data ( SCOOBI )""", formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -1,6 +1,3 @@
-from pathlib import Path
-pwd=Path().absolute()
-
 # This is a default configuration value file, 
 # Where you can hardcode the following variables
 
@@ -38,9 +35,10 @@ corrupted_folder='corrupt/'                   # The folder name for corrupted ra
 usemagick=True
 uselogging=False
 logfile='scoobi.logs'
-logfolder=pwd
+logfolder='.'
 
 # HEADER DEFAULT --------------------------------------------------
 telescope_name='HA'
 
 # -----------------------------------------------------------------
+config = {key: value for key, value in locals().items() if not key.startswith('__')}
