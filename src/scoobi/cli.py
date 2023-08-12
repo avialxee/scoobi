@@ -4,6 +4,18 @@ from collections import defaultdict
 from pathlib import Path
 from scoobi.config import rootfolder,processedfolder,rawfolder,config
 
+def ascii_art():
+    art="""
+                        | |   (_)   
+     ___  ___ ___   ___ | |__  _ 
+    / __|/ __/ _ \ / _ \| '_ \| |  
+    \__ \ (_| (_) | (_) | |_) | |   
+    |___/\___\___/ \___/|_.__/|_|   
+
+    Solar Conventionality-based Organizing Observation data ( SCOOBI )
+    """
+    return art
+
 def read_configfile(filepath):
     with open(filepath,'r') as f:
         params = defaultdict(list)
@@ -54,8 +66,7 @@ def create_config(params, out='config.py'):
     return f'configfile:{out}'
     
 
-parser = argparse.ArgumentParser('scoobi',description="""
-Solar Conventionality-based Organizing Observation data ( SCOOBI )""", formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser('scoobi',description=ascii_art(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
 # pa = parser.add_subparsers(help='compare datetimes') # subparser is used like $pip "install"
 

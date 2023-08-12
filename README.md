@@ -25,11 +25,17 @@ scoobi -f /path/to/fits/ -th -rc
 
 
 ```bash
-usage: scoobi [-h] [-f FITS_FOLDER] [-t TIFF_FOLDER] [-r RAW_FOLDER] [-o OUTPUT_FILE] [-c CONFIG_FILE] [-hdr HEADER]
-              [-hf HEADER_FILE] [-hfo HEADER_FILE_OUTPUT] [-mm MONTH] [-dd DAYS] [--no-datedfolder] [-rt] [-ct] [-rc]
-              [-cc] [-do] [-th]
+usage: scoobi [-h] [-f FITS_FOLDER] [-t TIFF_FOLDER] [-r RAW_FOLDER] [-o OUTPUT_FILE] [-c CONFIG_FILE] [-hdr HEADER] [-hf HEADER_FILE]
+              [-hfo HEADER_FILE_OUTPUT] [-mm MONTH] [-dd DAYS] [--no-datedfolder] [-rt] [-ct] [-rc] [-cc] [-do] [-th]
 
-Solar Conventionality-based Organizing Observation data ( SCOOBI )
+                        | |   (_)   
+     ___  ___ ___   ___ | |__  _ 
+    / __|/ __/ _ \ / _ \| '_ \| |  
+    \__ \ (_| (_) | (_) | |_) | |   
+    |___/\___\___/ \___/|_.__/|_|   
+
+    Solar Conventionality-based Organizing Observation data ( SCOOBI )
+    
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -52,10 +58,9 @@ optional arguments:
   -ct, --compare-time   compares time from a fits file to a tiff file
   -rc, --read-config    read config, bool
   -cc, --create-config  create config, if called with rc would modify from and to the CONFIG_FILE path
-  -do, --do-conversion  create fits from tiff/fits raw file and take care of the folder structure. Requires
-                        tiff_folder or raw_folder path
-  -th, --thumbnail      True/False for creating thumbnails; The fits folder path is required but should be more
-                        specific e.g atleaset including the /processed; should not be used with -do
+  -do, --do-conversion  create fits from tiff/fits raw file and take care of the folder structure. Requires tiff_folder or raw_folder path
+  -th, --thumbnail      True/False for creating thumbnails; The fits folder path is required but should be more specific e.g atleaset including the
+                        /processed; should not be used with -do
 
 header:
   Parameters for injecting and printing headers.
